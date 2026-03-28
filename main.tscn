@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://2c6wvnw8qstx"]
+
+[ext_resource type="Script" uid="uid://b3qui6kbwyiwi" path="res://Scripts/Main.cs" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://brh126c68dji" path="res://Scripts/FpsCounter.cs" id="2_0xm2m"]
+
+[node name="Main" type="Node2D" unique_id=35712199]
+script = ExtResource("1_ig7tw")
+
+[node name="Control" type="Control" parent="." unique_id=1493382368]
+layout_mode = 3
+anchors_preset = 0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="Label" type="Label" parent="Control" unique_id=594602405]
+layout_mode = 1
+offset_right = 40.0
+offset_bottom = 23.0
+text = "FPS"
+script = ExtResource("2_0xm2m")
