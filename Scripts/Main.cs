@@ -12,6 +12,7 @@ public partial class Main : Node2D
     private readonly List<Ball> _balls = new();
     public List<Ball> ActiveBalls = new();
 
+    public Color RandColor;
 
     public float Frequency = 0.01f;
     Vector2 velocityOverTime;
@@ -73,13 +74,6 @@ public partial class Main : Node2D
 
 
 
-        var r = new RandomNumberGenerator();
-
-        ball.color = new(
-            (float)r.RandfRange(0, 1),
-            (float)r.RandfRange(0, 1),
-            (float)r.RandfRange(0, 1)
-        );
 
         ball._BallInteractRadius = Radius * 2;
 
@@ -103,60 +97,68 @@ public partial class Main : Node2D
         var velocityOverTime = 0.5f;
         ResolveCollisions();
 
+
+
+
+
         foreach (var ball in _balls)
         {
             {
+                ball.color = RandColor;
                 const double GForce = 9.8;
                 double Vec = delta * GForce;
                 ball.velocityVector.Y += (float)Vec;
-                // FluctuateSize(ball);
-
+                SetRandomColor(ball);
 
             }
 
 
-            if (ball.pos.Y + ball.radius > screenSize.Y)
+            //Screen Colision If Statmant
             {
-                ball.pos.Y = screenSize.Y - ball.radius;
 
-                if (ball.velocityVector.Y > 0)
+                if (ball.pos.Y + ball.radius > screenSize.Y)
                 {
-                    ball.velocityVector.Y *= -velocityOverTime;
+                    ball.pos.Y = screenSize.Y - ball.radius;
 
-                    if (Math.Abs(ball.velocityVector.Y) < 0.5f) ball.velocityVector.Y = 0;
+                    if (ball.velocityVector.Y > 0)
+                    {
+                        ball.velocityVector.Y *= -velocityOverTime;
+
+                        if (Math.Abs(ball.velocityVector.Y) < 0.5f) ball.velocityVector.Y = 0;
+                    }
+                }
+
+                if (ball.pos.Y - ball.radius < 0)
+                {
+                    ball.pos.Y = ball.radius;
+                    if (ball.velocityVector.Y < 0)
+                    {
+                        ball.velocityVector.Y *= -velocityOverTime;
+                    }
+                }
+
+                if (ball.pos.X + ball.radius > screenSize.X)
+                {
+                    ball.pos.X = screenSize.X - ball.radius;
+                    if (ball.velocityVector.X > 0)
+                    {
+                        ball.velocityVector.X *= -velocityOverTime;
+                    }
+                }
+
+                if (ball.pos.X - ball.radius < 0)
+                {
+                    ball.pos.X = ball.radius;
+                    if (ball.velocityVector.X < 0)
+                    {
+                        ball.velocityVector.X *= -velocityOverTime;
+                    }
                 }
             }
 
-            if (ball.pos.Y - ball.radius < 0)
-            {
-                ball.pos.Y = ball.radius;
-                if (ball.velocityVector.Y < 0)
-                {
-                    ball.velocityVector.Y *= -velocityOverTime;
-                }
-            }
-
-            if (ball.pos.X + ball.radius > screenSize.X)
-            {
-                ball.pos.X = screenSize.X - ball.radius;
-                if (ball.velocityVector.X > 0)
-                {
-                    ball.velocityVector.X *= -velocityOverTime;
-                }
-            }
-
-            if (ball.pos.X - ball.radius < 0)
-            {
-                ball.pos.X = ball.radius;
-                if (ball.velocityVector.X < 0)
-                {
-                    ball.velocityVector.X *= -velocityOverTime;
-                }
-            }
 
 
             ball.pos += ball.velocityVector;
-            // GD.Print("VeloctyVector" + ball.velocityVector);
 
         }
 
@@ -165,6 +167,19 @@ public partial class Main : Node2D
 
     }
 
+
+    public void SetRandomColor(Ball ball)
+    {
+
+        var r = new RandomNumberGenerator();
+        RandColor = new(
+             (float)r.RandfRange(0, 1),
+             (float)r.RandfRange(0, 1),
+             (float)r.RandfRange(0, 1)
+         );
+
+        ball.color = RandColor;
+    }
     public void ResolveCollisions()
 
     {
