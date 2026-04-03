@@ -1,0 +1,10 @@
+{
+	"MsBuild": {
+		"UseBundledMSBuildDeclaration": true,
+		"LoadProjectsOnDemand": false
+	},
+	"Sdk": {
+		"IncludePrereleases": true,
+		"RegisterInternalMSBuild": true
+	}
+}

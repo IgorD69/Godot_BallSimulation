@@ -7,12 +7,11 @@ using System.Threading;
 public partial class Main : Node2D
 {
 
+
     [Export] public float Radius { get; set; } = 30.0f;
 
     private readonly List<Ball> _balls = new();
     public List<Ball> ActiveBalls = new();
-
-    public Color RandColor;
 
     public float Frequency = 0.01f;
     Vector2 velocityOverTime;
@@ -35,47 +34,63 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
+
+        var r = new RandomNumberGenerator();
+
         {
-            var b = InstatiateBall();
+            var b = InstatiateBall(r);
+
             b.pos = new Vector2(150, 150);
+
         }
 
 
-
-        var r = new RandomNumberGenerator();
         var screenSize = GetViewport().GetVisibleRect().Size;
 
         for (int i = 0; i < 200; i++)
         {
-            var b = InstatiateBall();
+            var b = InstatiateBall(r);
             var x = r.RandfRange(b.radius, screenSize.X - b.radius);
             var y = r.RandfRange(b.radius, screenSize.Y - b.radius);
 
-            var RandomVelocity = r.RandfRange(0, 5);
+            var RandomVelocity = r.RandfRange(0, 5) * 60;
 
             b.pos = new(x, y);
             b.velocityVector = new(0, RandomVelocity);
             b.radius = ((float)r.RandfRange(10, Radius));
+
         }
     }
 
 
 
-    public Ball InstatiateBall()
+    public Ball InstatiateBall(RandomNumberGenerator r)
     {
+
+
         Ball ball = new();
         _balls.Add(ball);
 
         ball.radius = Radius;
+
         var screenSize = GetViewport().GetVisibleRect().Size;
+
         var pos = screenSize / 2;
         ball.pos = pos;
         ball.velocityVector = new Vector2(0, 1);
 
-
-
-
         ball._BallInteractRadius = Radius * 2;
+
+
+
+        var randColor = new Color(
+             (float)r.RandfRange(0, 1),
+             (float)r.RandfRange(0, 1),
+             (float)r.RandfRange(0, 1)
+         );
+
+        ball.color = randColor;
+
 
 
         return ball;
@@ -87,33 +102,44 @@ public partial class Main : Node2D
     public override void _Draw()
     {
         foreach (var ball in _balls)
-            DrawCircle(ball.pos, ball.radius, color: ball.color);
+        {
+            DrawCircle(ball.pos, ball.radius, ball.color);
+        }
+
     }
 
 
     public override void _Process(double delta)
     {
         var screenSize = GetViewport().GetVisibleRect().Size;
-        var velocityOverTime = 0.5f;
-        ResolveCollisions();
-
-
-
-
+        var bounceSpeedLossRatio = 0.5f;
 
         foreach (var ball in _balls)
         {
+            // integration
+            ball.pos += ball.velocityVector * (float)delta;
+        }
+
+        ResolveCollisions();
+
+        foreach (var ball in _balls)
+        {
+            HandleCollisionWithWalls();
+            ApplyGravity();
+            continue;
+
+
+
+            void ApplyGravity()
             {
-                ball.color = RandColor;
-                const double GForce = 9.8;
+                const double GForce = 5000;
                 double Vec = delta * GForce;
                 ball.velocityVector.Y += (float)Vec;
-                SetRandomColor(ball);
-
             }
 
 
             //Screen Colision If Statmant
+            void HandleCollisionWithWalls()
             {
 
                 if (ball.pos.Y + ball.radius > screenSize.Y)
@@ -122,7 +148,7 @@ public partial class Main : Node2D
 
                     if (ball.velocityVector.Y > 0)
                     {
-                        ball.velocityVector.Y *= -velocityOverTime;
+                        ball.velocityVector.Y *= -bounceSpeedLossRatio;
 
                         if (Math.Abs(ball.velocityVector.Y) < 0.5f) ball.velocityVector.Y = 0;
                     }
@@ -133,7 +159,7 @@ public partial class Main : Node2D
                     ball.pos.Y = ball.radius;
                     if (ball.velocityVector.Y < 0)
                     {
-                        ball.velocityVector.Y *= -velocityOverTime;
+                        ball.velocityVector.Y *= -bounceSpeedLossRatio;
                     }
                 }
 
@@ -142,7 +168,7 @@ public partial class Main : Node2D
                     ball.pos.X = screenSize.X - ball.radius;
                     if (ball.velocityVector.X > 0)
                     {
-                        ball.velocityVector.X *= -velocityOverTime;
+                        ball.velocityVector.X *= -bounceSpeedLossRatio;
                     }
                 }
 
@@ -151,15 +177,10 @@ public partial class Main : Node2D
                     ball.pos.X = ball.radius;
                     if (ball.velocityVector.X < 0)
                     {
-                        ball.velocityVector.X *= -velocityOverTime;
+                        ball.velocityVector.X *= -bounceSpeedLossRatio;
                     }
                 }
             }
-
-
-
-            ball.pos += ball.velocityVector;
-
         }
 
         QueueRedraw();
@@ -167,21 +188,7 @@ public partial class Main : Node2D
 
     }
 
-
-    public void SetRandomColor(Ball ball)
-    {
-
-        var r = new RandomNumberGenerator();
-        RandColor = new(
-             (float)r.RandfRange(0, 1),
-             (float)r.RandfRange(0, 1),
-             (float)r.RandfRange(0, 1)
-         );
-
-        ball.color = RandColor;
-    }
     public void ResolveCollisions()
-
     {
         float friction = 0.8f;
 
@@ -200,7 +207,6 @@ public partial class Main : Node2D
                 {
                     float overlap = minDistance - distance;
                     Vector2 collisionNormal = (ballB.pos - ballA.pos).Normalized();
-
                     ballA.pos -= collisionNormal * (overlap / 2);
                     ballB.pos += collisionNormal * (overlap / 2);
 
